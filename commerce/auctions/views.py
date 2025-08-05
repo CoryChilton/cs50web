@@ -3,12 +3,21 @@ from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+from django.contrib.auth.decorators import login_required
+from django import forms
+from .choices import CATEGORIES
+from .models import Listing
+
 
 from .models import User
 
 
 def index(request):
-    return render(request, "auctions/index.html")
+    listings = Listing.objects.all()
+    print(listings)
+    return render(request, "auctions/index.html", {
+        "listings": listings
+    })
 
 
 def login_view(request):
@@ -61,3 +70,36 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "auctions/register.html")
+
+
+class ListingForm(forms.Form):
+    title = forms.CharField(label='Title', max_length=255)
+    description = forms.CharField(label='Description', widget=forms.Textarea, required=False)
+    starting_bid = forms.DecimalField(label='Starting Bid ($)', decimal_places=2)
+    image_url = forms.URLField(label='Image URL', required=False)
+    category = forms.ChoiceField(label='category', required=False, choices=CATEGORIES)
+    
+@login_required
+def new_listing(request):
+    if request.method == 'POST':
+        form = ListingForm(request.POST)
+        if form.is_valid():
+            l = Listing(title=request.POST['title'], 
+                        description=request.POST['description'], 
+                        bid_price_cents=float(request.POST['starting_bid']) * 100, 
+                        image_url=request.POST['image_url'], 
+                        category=request.POST['category'])
+            l.save()
+            return HttpResponseRedirect(reverse('listing', kwargs={"listing_id": l.pk}))
+    else:
+        form = ListingForm()
+        return render(request, "auctions/new_listing.html", {
+            'form': form
+        })
+
+def listing(request, listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    return render(request, "auctions/listing.html", {
+        "listing": listing,
+        "price": float(listing.bid_price_cents) / 100
+    })

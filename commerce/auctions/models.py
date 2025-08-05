@@ -14,5 +14,5 @@ class Listing(models.Model):
     category = models.CharField(max_length=63)
 
     def __str__(self):
-        return self.title
+        return f'{self.pk} {self.title}'
 
