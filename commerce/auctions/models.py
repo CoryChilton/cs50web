@@ -9,7 +9,7 @@ class User(AbstractUser):
 class Listing(models.Model):
     title = models.CharField(max_length=255)
     description = models.TextField()
-    bid_price_cents = models.PositiveIntegerField()
+    bid_price = models.DecimalField(decimal_places=2, max_digits=9)
     image_url = models.URLField()
     category = models.CharField(max_length=63)
 

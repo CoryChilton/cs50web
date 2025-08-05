@@ -86,7 +86,7 @@ def new_listing(request):
         if form.is_valid():
             l = Listing(title=request.POST['title'], 
                         description=request.POST['description'], 
-                        bid_price_cents=float(request.POST['starting_bid']) * 100, 
+                        bid_price=request.POST['starting_bid'], 
                         image_url=request.POST['image_url'], 
                         category=request.POST['category'])
             l.save()
@@ -101,5 +101,4 @@ def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     return render(request, "auctions/listing.html", {
         "listing": listing,
-        "price": float(listing.bid_price_cents) / 100
     })

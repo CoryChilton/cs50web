@@ -4,8 +4,11 @@
     <h2>Active Listings</h2>
 
     {% for listing in listings %}
-        <h3>{{ listing.title }}</h3>
-        
-
+        <a href="{% url 'listing' listing.pk %}"><h3>{{ listing.title }}</h3></a>
+        <h4>${{ listing.bid_price }}</h4>
+        <p>{{ listing.description }}</p>
+        {% if listing.image_url %}
+            <img src={{ listing.image_url }} alt="image of item">
+        {% endif %}
     {% endfor %}
 {% endblock %}
