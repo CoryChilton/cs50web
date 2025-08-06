@@ -99,6 +99,23 @@ def new_listing(request):
 
 def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
+    if request.method == 'POST':
+        request.user.listings.add(listing)
+        return HttpResponseRedirect(reverse('watchlist'))
+    # else:  
     return render(request, "auctions/listing.html", {
-        "listing": listing,
+            "listing": listing,
+        })
+
+@login_required
+def watchlist(request):
+    return render(request, "auctions/watchlist.html", {
+        "listings": request.user.listings.all()
     })
+
+@login_required
+def delete_from_watchlist(request, listing_id):
+    if request.method == 'POST':
+        listing = Listing.objects.get(pk=listing_id)
+        request.user.listings.remove(listing)
+        return HttpResponseRedirect(reverse('watchlist'))

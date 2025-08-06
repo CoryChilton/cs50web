@@ -4,5 +4,11 @@
     <h2>Listing</h2>
     <p>{{ listing.title }}</p>
     <p>${{ listing.bid_price }}</p>
+    {% if user.is_authenticated %}
+        <form action="{% url 'listing' listing.pk%}" method="post">
+            {% csrf_token %}
+            <button type="submit">Add to Watchlist</button>
+        </form>
+    {% endif %}
     
 {% endblock %}
