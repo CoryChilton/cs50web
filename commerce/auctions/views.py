@@ -1,12 +1,12 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
 from .choices import CATEGORIES
-from .models import Listing
+from .models import Listing, Bid
 
 
 from .models import User
@@ -14,7 +14,6 @@ from .models import User
 
 def index(request):
     listings = Listing.objects.all()
-    print(listings)
     return render(request, "auctions/index.html", {
         "listings": listings
     })
@@ -88,7 +87,8 @@ def new_listing(request):
                         description=request.POST['description'], 
                         bid_price=request.POST['starting_bid'], 
                         image_url=request.POST['image_url'], 
-                        category=request.POST['category'])
+                        category=request.POST['category'],
+                        creator=request.user)
             l.save()
             return HttpResponseRedirect(reverse('listing', kwargs={"listing_id": l.pk}))
     else:
@@ -97,15 +97,46 @@ def new_listing(request):
             'form': form
         })
 
+class BidForm(forms.Form):
+    bid_price = forms.DecimalField(label='Bid ($)', decimal_places=2)
+
 def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     if request.method == 'POST':
         request.user.listings.add(listing)
         return HttpResponseRedirect(reverse('watchlist'))
     # else:  
+    bid_form = BidForm()
     return render(request, "auctions/listing.html", {
             "listing": listing,
+            "bid_form": bid_form,
         })
+
+@login_required
+def close_listing(request, listing_id):
+    l = Listing.objects.get(pk=listing_id)
+    if request.method == 'POST':
+        return redirect('listing', listing_id=l.pk)
+
+@login_required
+def bid(request, listing_id):
+    listing = Listing.objects.get(pk=listing_id)
+    if request.method == 'POST':
+        form = BidForm(request.POST)
+        if form.is_valid():
+            if form.cleaned_data['bid_price'] <= listing.bid_price:
+                return render(request, "auctions/error.html", {
+                    'error_message': 'Your bid must be greater than the current bid'
+                })
+            
+            b = Bid(listing=listing, 
+                    user=request.user, 
+                    bid_price=form.cleaned_data['bid_price'])
+            b.save()
+            listing.bid_price = form.cleaned_data['bid_price']
+            listing.save()
+            return redirect('listing', listing_id=listing.pk)
+    
 
 @login_required
 def watchlist(request):
