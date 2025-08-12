@@ -14,6 +14,7 @@ class Listing(models.Model):
     image_url = models.URLField()
     category = models.CharField(max_length=63)
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
+    active = models.BooleanField(default=True)
 
     def __str__(self):
         return f'{self.pk} {self.title}'

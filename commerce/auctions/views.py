@@ -107,15 +107,21 @@ def listing(request, listing_id):
         return HttpResponseRedirect(reverse('watchlist'))
     # else:  
     bid_form = BidForm()
+    winning_bid = Bid.objects.filter(listing=listing.pk).latest("timestamp")
+    is_winner = winning_bid.user == request.user
+    
     return render(request, "auctions/listing.html", {
             "listing": listing,
             "bid_form": bid_form,
+            "is_winner": is_winner
         })
 
 @login_required
 def close_listing(request, listing_id):
     l = Listing.objects.get(pk=listing_id)
     if request.method == 'POST':
+        l.active = False
+        l.save()
         return redirect('listing', listing_id=l.pk)
 
 @login_required
