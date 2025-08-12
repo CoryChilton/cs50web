@@ -25,5 +25,18 @@
     {% elif is_winner %}
             <h3>You Won this Listing!</h3>
     {% endif %}
+    {% if user.is_authenticated %}
+        <form action="{% url 'comment' listing.pk %}" method="post">
+            {% csrf_token %}
+            {{ comment_form }}
+            <button type="submit">Comment</button>
+        </form>
+    {% endif %}
+    <h2>Comments:</h2>
+    {% for comment in comments %}
+        <p>{{ comment.comment }}</p>
+    {% endfor %}
+
+
     
 {% endblock %}

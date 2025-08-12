@@ -28,3 +28,11 @@ class Bid(models.Model):
     def __str__(self):
         return f'{self.user} bid {self.bid_price} on {self.listing}'
 
+class Comment(models.Model):
+    comment = models.TextField()
+    writer = models.ForeignKey(User, on_delete=models.CASCADE)
+    listing = models.ForeignKey(Listing, on_delete=models.CASCADE)
+    
+    def __str__(self):
+        return f'{self.writer} commented "{self.comment}" on {self.listing}'
+

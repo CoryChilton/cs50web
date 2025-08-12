@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from django import forms
 from .choices import CATEGORIES
-from .models import Listing, Bid
+from .models import Listing, Bid, Comment
 
 
 from .models import User
@@ -100,6 +100,9 @@ def new_listing(request):
 class BidForm(forms.Form):
     bid_price = forms.DecimalField(label='Bid ($)', decimal_places=2)
 
+class CommentForm(forms.Form):
+    comment = forms.CharField(label='Comment', widget=forms.Textarea)
+
 def listing(request, listing_id):
     listing = Listing.objects.get(pk=listing_id)
     if request.method == 'POST':
@@ -107,14 +110,30 @@ def listing(request, listing_id):
         return HttpResponseRedirect(reverse('watchlist'))
     # else:  
     bid_form = BidForm()
-    winning_bid = Bid.objects.filter(listing=listing.pk).latest("timestamp")
-    is_winner = winning_bid.user == request.user
+    comment_form = CommentForm()
+    winning_bid = Bid.objects.filter(listing=listing.pk).order_by("-timestamp").first()
+    is_winner = winning_bid and winning_bid.user == request.user
+    comments = Comment.objects.filter(listing=listing)
     
     return render(request, "auctions/listing.html", {
             "listing": listing,
             "bid_form": bid_form,
-            "is_winner": is_winner
+            "comment_form": comment_form,
+            "is_winner": is_winner,
+            "comments": comments
         })
+
+@login_required
+def comment(request, listing_id):
+    l = Listing.objects.get(pk=listing_id)
+    if request.method == 'POST':
+        form = CommentForm(request.POST)
+        if form.is_valid():
+            c = Comment(comment=form.cleaned_data['comment'],
+                        writer=request.user,
+                        listing=l)
+            c.save()
+        return redirect('listing', listing_id=l.pk)
 
 @login_required
 def close_listing(request, listing_id):
@@ -156,3 +175,29 @@ def delete_from_watchlist(request, listing_id):
         listing = Listing.objects.get(pk=listing_id)
         request.user.listings.remove(listing)
         return HttpResponseRedirect(reverse('watchlist'))
+
+class CategoryForm(forms.Form):
+    category = forms.ChoiceField(label='Category', required=False, choices=CATEGORIES)
+
+def categories(request):
+    if request.method == 'POST':
+        form = CategoryForm(request.POST)
+        if form.is_valid():
+            category = form.cleaned_data['category']
+            return redirect('category', category=category)
+    else:
+        category_form = CategoryForm()
+        return render(request, 'auctions/categories.html', {
+            "category_form": category_form,
+        })
+
+def category(request, category):
+    listings = Listing.objects.filter(category=category)
+    for c_short, c_readable in CATEGORIES:
+        if c_short == category:
+            category_readable = c_readable
+    return render(request, 'auctions/category.html', {
+        'category': category,
+        'listings': listings,
+        'category_readable': category_readable,
+    })
