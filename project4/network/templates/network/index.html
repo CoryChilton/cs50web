@@ -1,12 +1,16 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    <h2>New Post</h2>
-    <form action="{% url 'create_post' %}" method="post">
-        {% csrf_token %}
-        {{ post_form }}
-        <input type="submit" value="Submit">
-    </form>
+    {% if post_form %}
+        <h2>New Post</h2>
+        <form action="{% url 'create_post' %}" method="post">
+            {% csrf_token %}
+            {{ post_form }}
+            <input type="submit" value="Submit">
+        </form>
+    {% else %}
+        <h2>Following</h2>
+    {% endif %}
 
     {% for p in posts %}
         <a href="{% url 'profile' p.user.pk %}"><h3>{{ p.user.username }}</h3></a>
@@ -14,4 +18,15 @@
         <p>{{ p.content }}</p>
         <p>Likes: {{ p.like_count }}</p>
     {% endfor %}
+
+
+    <nav aria-label="Page navigation example">
+        <ul class="pagination">
+          <li class="page-item"><a class="page-link" href="{% url 'index' prev_page %}">Previous</a></li>
+          {% for pn in page_nums %}
+            <li class="page-item"><a class="page-link" href="{% url 'index' pn %}">{{ pn }}</a></li>
+          {% endfor %}
+          <li class="page-item"><a class="page-link" href="{% url 'index' next_page %}">Next</a></li>
+        </ul>
+      </nav>
 {% endblock %}
