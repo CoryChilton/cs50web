@@ -15,10 +15,23 @@
     {% endif %}
 
     {% for p in posts %}
-        <h3>{{ p.user.username }}</h3>
-        <h4>{{  p.created_timestamp }}</h4>
-        <p>{{ p.content }}</p>
-        <p>Likes: {{ p.like_count }}</p>
+        <div class="post-div" data-post-id={{ p.pk }}>
+            <h3>{{ p.user.username }}</h3>
+            <h4>{{  p.created_timestamp }}</h4>
+            <p class="content" data-post-id={{ p.pk }}>{{ p.content }}</p>
+            <p>Likes: {{ p.like_count }}</p>
+        </div>
+        {% if profile_user == user %}
+            <div class="hidden form-div" data-post-id={{ p.pk }}>
+                <h2>Edit Post</h2>
+                <form action="{% url 'edit_post' p.pk%}" method="post">
+                    {% csrf_token %}
+                    {{ post_form }}
+                    <input type="submit" value="Save">
+                </form>
+            </div>
+            <button data-post-id={{ p.pk }} class="edit-button">Edit</button>
+        {% endif %}
     {% endfor %}
 
     <nav aria-label="Page navigation example">

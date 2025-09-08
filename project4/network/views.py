@@ -95,6 +95,15 @@ def create_post(request):
     else:
         return redirect('index')
 
+def edit_post(request, post_id):
+    if request.method == "POST":
+        form = PostForm(request.POST)
+        if form.is_valid():
+            p = Post.objects.get(pk=post_id)
+            p.content = request.POST['content']
+            p.save()
+            return redirect('index')
+
 
 def profile(request, user_id, page=1):
     profile_user = User.objects.get(pk=user_id)
@@ -107,6 +116,7 @@ def profile(request, user_id, page=1):
     posts_paginated = Paginator(posts, 2)
     page_nums = range(1, posts_paginated.num_pages + 1)
     page = int(page)
+    post_form = PostForm()
 
     return render(request, 'network/profile.html', {
         'profile_user': profile_user,
@@ -117,6 +127,7 @@ def profile(request, user_id, page=1):
         'page_nums': page_nums,
         'next_page': page + 1 if page + 1 <= posts_paginated.num_pages else posts_paginated.num_pages,
         'prev_page': page - 1 if page - 1 > 0 else 1,
+        'post_form': post_form,
     })
 
 
