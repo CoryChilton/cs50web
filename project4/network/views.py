@@ -27,6 +27,7 @@ def index(request, page=1):
         'page_nums': page_nums,
         'next_page': page + 1 if page + 1 <= posts_paginated.num_pages else posts_paginated.num_pages,
         'prev_page': page - 1 if page - 1 > 0 else 1,
+        'from_view': 'index',
     })
 
 
@@ -95,20 +96,27 @@ def create_post(request):
         return redirect('index')
 
 
-def profile(request, user_id):
+def profile(request, user_id, page=1):
     profile_user = User.objects.get(pk=user_id)
     num_followers = profile_user.followers.count()
     num_following = profile_user.following.count()
-    posts = Post.objects.filter(user=user_id).order_by('-created_timestamp')
     currently_following = False
     if profile_user in request.user.following.all():
         currently_following = True
+    posts = Post.objects.filter(user=user_id).order_by('-created_timestamp')
+    posts_paginated = Paginator(posts, 2)
+    page_nums = range(1, posts_paginated.num_pages + 1)
+    page = int(page)
+
     return render(request, 'network/profile.html', {
         'profile_user': profile_user,
         'num_followers': num_followers,
         'num_following': num_following,
-        'posts': posts,
+        'posts': posts_paginated.page(page).object_list,
         'currently_following': currently_following,
+        'page_nums': page_nums,
+        'next_page': page + 1 if page + 1 <= posts_paginated.num_pages else posts_paginated.num_pages,
+        'prev_page': page - 1 if page - 1 > 0 else 1,
     })
 
 
@@ -138,10 +146,17 @@ def unfollow(request, user_id):
 
 
 @login_required
-def following(request):
+def following(request, page=1):
     followed_users = request.user.following.all()
     posts = Post.objects.filter(user__in=followed_users).order_by('-created_timestamp')
+    posts_paginated = Paginator(posts, 2)
+    page_nums = range(1, posts_paginated.num_pages + 1)
+    page = int(page)
     return render(request, "network/index.html", {
-        'posts': posts
+        'posts': posts_paginated.page(page).object_list,
+        'page_nums': page_nums,
+        'next_page': page + 1 if page + 1 <= posts_paginated.num_pages else posts_paginated.num_pages,
+        'prev_page': page - 1 if page - 1 > 0 else 1,
+        'from_view': 'following',
     })
     
