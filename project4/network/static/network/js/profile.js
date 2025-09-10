@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
     editForms.forEach(ef => {
         ef.addEventListener('submit', submitEditForm);
     });
+    
 
     function follow(e) {
         const userId = this.dataset.userId;

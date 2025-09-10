@@ -7,6 +7,7 @@ from django import forms
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 from django.core.paginator import Paginator
 
 from .models import User, Post
@@ -172,4 +173,20 @@ def following(request, page=1):
         'prev_page': page - 1 if page - 1 > 0 else 1,
         'from_view': 'following',
     })
+
+@login_required
+@require_POST
+def like(request, post_id):
+    post = Post.objects.get(pk=post_id)
+    if request.user in post.likers.all():
+        return JsonResponse({"message": "user already liked this post"}, status=401)
+    
+    post.likers.add(request.user)
+    post.like_count += 1
+    post.save()
+        
+    data = {"status": "ok", "message": "post has been liked"}
+    return JsonResponse(data, status=200)
+    
+    
     

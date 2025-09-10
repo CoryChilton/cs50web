@@ -1,4 +1,5 @@
 {% extends "network/layout.html" %}
+{% load static %}
 
 {% block body %}
     {% if post_form %}
@@ -16,7 +17,11 @@
         <a href="{% url 'profile' p.user.pk %}"><h3>{{ p.user.username }}</h3></a>
         <h4>{{  p.created_timestamp }}</h4>
         <p>{{ p.content }}</p>
-        <p>Likes: {{ p.like_count }}</p>
+        <p>Likes: <span class="like-count" data-post-id={{ p.pk }}>{{ p.like_count }}</span></p>
+        <form class="like-form" data-post-id={{ p.pk }} method="POST" action="{% url 'like' p.pk%}">
+          {% csrf_token %}
+          <input type="submit" value="Like">
+        </form>
     {% endfor %}
 
 
@@ -29,4 +34,8 @@
           <li class="page-item"><a class="page-link" href="{% url from_view next_page %}">Next</a></li>
         </ul>
       </nav>
+{% endblock %}
+
+{% block script %}
+    <script src="{% static 'network/js/main.js' %}"></script>
 {% endblock %}
