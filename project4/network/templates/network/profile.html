@@ -24,7 +24,7 @@
         {% if profile_user == user %}
             <div class="hidden form-div" data-post-id={{ p.pk }}>
                 <h2>Edit Post</h2>
-                <form action="{% url 'edit_post' p.pk%}" method="post">
+                <form data-post-id={{ p.pk }} class="edit-form" action="{% url 'edit_post' p.pk%}" method="post">
                     {% csrf_token %}
                     {{ post_form }}
                     <input type="submit" value="Save">

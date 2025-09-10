@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', () => {
     editButtons.forEach(eb => {
         eb.addEventListener('click', clickEditButton);
     })
+    const editForms = document.querySelectorAll('.edit-form');
+    editForms.forEach(ef => {
+        ef.addEventListener('submit', submitEditForm);
+    });
 
     function follow(e) {
         const userId = this.dataset.userId;
@@ -36,8 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         })
     }
 
-    function clickEditButton(e) {
-        console.log(this.dataset.postId);
+    function clickEditButton() {
         form_div = document.querySelector(`.form-div[data-post-id="${this.dataset.postId}"]`);
         post_div = document.querySelector(`.post-div[data-post-id="${this.dataset.postId}"]`);
         textarea = document.querySelector(`.form-div[data-post-id="${this.dataset.postId}"] textarea`);
@@ -45,5 +48,29 @@ document.addEventListener('DOMContentLoaded', () => {
         textarea.value = content_p.innerText
         form_div.classList.toggle("hidden");
         post_div.classList.toggle("hidden");
+    }
+
+    function submitEditForm(e) {
+        e.preventDefault();
+        const editForm = new FormData(this);
+
+        fetch(this.action, {
+            method: "POST",
+            body: editForm,
+            headers: {
+                "X-CSRFToken": editForm.get('csrfmiddlewaretoken')
+            }
+        })
+        .then(response => response.json())
+        .then(result => {
+            console.log(result);
+            // location.reload();
+        })
+
+        contentP = document.querySelector(`.content[data-post-id="${this.dataset.postId}"]`);
+        contentP.innerText = editForm.get('content');
+        const edit_button = document.querySelector(`.edit-button[data-post-id="${this.dataset.postId}"]`);
+        clickEditButton.call(edit_button);
+
     }
 })

@@ -102,7 +102,9 @@ def edit_post(request, post_id):
             p = Post.objects.get(pk=post_id)
             p.content = request.POST['content']
             p.save()
-            return redirect('index')
+            data = {"status": "ok", "message": "post has been editted"}
+            return JsonResponse(data)
+            # return redirect('index')
 
 
 def profile(request, user_id, page=1):
